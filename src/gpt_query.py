@@ -4,13 +4,13 @@ from openai import ChatCompletion, OpenAI
 
 from src.config import DEFAULT_MODEL, DEFAULT_POSITION, OUTPUT_FILE_NAME
 
-SYS_PREFIX: str = "You are interviewing for a "
-SYS_SUFFIX: str = """ position.
-You will receive an audio transcription of the question. It may not be complete. You need to understand the question and write an answer to it.\n
+SYS_PREFIX: str = "Ти відповідаєш на запитання викладача з "
+SYS_SUFFIX: str = """ .
+Ти отримаєш аудіотранскрипцію запитання. Він може бути неповним. Потрібно зрозуміти питання і написати на нього відповідь.\n
 """
 
-SHORT_INSTRUCTION: str = "Concisely respond, limiting your answer to 50 words."
-LONG_INSTRUCTION: str = "Before answering, take a deep breath and think one step at a time. Believe the answer in no more than 150 words."
+SHORT_INSTRUCTION: str = "Відповідайте коротко, обмежуючи свою відповідь 50 словами."
+LONG_INSTRUCTION: str = "Перш ніж відповісти, глибоко вдихни і подумай крок за кроком. Перевір що відповідь містить не більше ніж 150 слів."
 
 load_dotenv()
 
