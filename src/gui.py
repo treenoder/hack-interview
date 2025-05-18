@@ -203,6 +203,7 @@ def build_layout() -> (
         k="-MODEL_COMBO-",
         s=24,
         tooltip="Select the model to use",
+        enable_events=True,
     )
 
     update_models_button = create_button(
