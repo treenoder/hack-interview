@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple, Union
 import FreeSimpleGUI as sg
 
 from src.button import GREY_BUTTON, OFF_IMAGE
-from src.config import APPLICATION_WIDTH, DEFAULT_MODEL, MODELS, THEME
+from src.config import APPLICATION_WIDTH, DEFAULT_MODEL, MODELS, THEME, DEFAULT_POSITION
 
 
 class BtnInfo:
@@ -201,11 +201,18 @@ def build_layout() -> (
         default_value=DEFAULT_MODEL,
         readonly=True,
         k="-MODEL_COMBO-",
-        s=28,
+        s=24,
         tooltip="Select the model to use",
     )
+
+    update_models_button = create_button(
+        key="-UPDATE_MODELS-",
+        tooltip="Update models list from API",
+        text="↻",
+        standard=True,
+    )
     position = sg.Input(
-        default_text="Python Developer",
+        default_text=DEFAULT_POSITION,
         k="-POSITION_INPUT-",
         s=30,
         tooltip="Enter the position you are applying for",
@@ -215,7 +222,7 @@ def build_layout() -> (
     # Create frames
     top_frame = create_frame(
         layout=[
-            [name("Model"), model],
+            [name("Model"), model, update_models_button],
             [name("Position"), position],
         ],
         key="-TOP_FRAME-",

@@ -5,6 +5,8 @@ from loguru import logger
 
 from src import audio, gpt_query
 from src.button import OFF_IMAGE, ON_IMAGE
+from utils.list_models import update_models
+from utils.cache import set_default_model, set_default_position
 
 
 def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None:
@@ -27,6 +29,57 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
     # If the user is focused on the position input
     if event[:6] in ("Return", "Escape"):
         window["-ANALYZE_BUTTON-"].set_focus()
+
+    # When the model is changed, update the default model in cache
+    elif event == "-MODEL_COMBO-":
+        model = values["-MODEL_COMBO-"]
+        if model:
+            logger.debug(f"Setting default model to {model}")
+            set_default_model(model)
+
+    # When the user presses Enter or Tab in the position input, update the default position
+    elif event in ("Return:36", "Tab:48") and focused_element and focused_element.Key == "-POSITION_INPUT-":
+        position = values["-POSITION_INPUT-"]
+        if position:
+            logger.debug(f"Setting default position to {position}")
+            set_default_position(position)
+            window["-ANALYZE_BUTTON-"].set_focus()
+
+    # When the update models button is clicked
+    elif event == "-UPDATE_MODELS-":
+        logger.debug("Updating models list...")
+        window["-UPDATE_MODELS-"].update(disabled=True)
+        window["-UPDATE_MODELS-"].update(text="...")
+
+        # Update models in a separate thread to avoid blocking the UI
+        def update_models_thread():
+            models = update_models()
+            return models
+
+        window.perform_long_operation(update_models_thread, "-MODELS_UPDATED-")
+
+    # When models are updated
+    elif event == "-MODELS_UPDATED-":
+        models = values["-MODELS_UPDATED-"]
+        logger.debug(f"Models updated: {len(models)} models found")
+
+        # Get current model
+        current_model = values["-MODEL_COMBO-"]
+
+        # Update the dropdown with new models
+        window["-MODEL_COMBO-"].update(values=models)
+
+        # If current model is in the new list, keep it selected
+        if current_model in models:
+            window["-MODEL_COMBO-"].update(value=current_model)
+        # Otherwise select the first model
+        elif models:
+            window["-MODEL_COMBO-"].update(value=models[0])
+            set_default_model(models[0])
+
+        # Re-enable the update button
+        window["-UPDATE_MODELS-"].update(disabled=False)
+        window["-UPDATE_MODELS-"].update(text="↻")
 
     # When the transcription is ready
     elif event == "-WHISPER-":
