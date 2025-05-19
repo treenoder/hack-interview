@@ -1,3 +1,5 @@
+import dataclasses
+
 from dotenv import load_dotenv
 from loguru import logger
 from openai import ChatCompletion, OpenAI
@@ -19,6 +21,30 @@ load_dotenv()
 
 client: OpenAI = OpenAI()
 
+@dataclasses.dataclass
+class Transcription:
+    path: str
+    text: str | None = None
+    _sha1_hash: str = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        import hashlib
+        with open(self.path, "rb") as f:
+            self._sha1_hash = hashlib.sha1(f.read()).hexdigest()
+
+    @property
+    def sha1_hash(self):
+        return self._sha1_hash
+
+    def __eq__(self, other):
+        return self.sha1_hash == other.sha1_hash
+
+    def __hash__(self):
+        return hash(self.sha1_hash)
+
+
+last_transcription: Transcription | None = None
+
 
 def transcribe_audio(path_to_file: str = OUTPUT_FILE_NAME) -> str:
     """
@@ -30,7 +56,13 @@ def transcribe_audio(path_to_file: str = OUTPUT_FILE_NAME) -> str:
     Returns:
         str: The audio transcription.
     """
+    global last_transcription
     logger.debug(f"Transcribing audio from: {path_to_file}...")
+    if last_transcription and last_transcription.text and last_transcription == Transcription(path_to_file):
+        logger.debug("Using cached transcription.")
+        return last_transcription.text
+    else:
+        last_transcription = Transcription(path_to_file)
 
     with open(path_to_file, "rb") as audio_file:
         try:
@@ -41,6 +73,7 @@ def transcribe_audio(path_to_file: str = OUTPUT_FILE_NAME) -> str:
             logger.error(f"Can't transcribe audio: {error}")
             raise error
 
+    last_transcription.text = transcript
     logger.debug("Audio transcribed.")
     print("Transcription:", transcript)
 
