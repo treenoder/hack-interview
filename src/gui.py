@@ -61,7 +61,7 @@ def create_text_area(
     size: Optional[Tuple[int, int]] = None,
     key: str = "",
     text_color: str = None,
-) -> sg.Text:
+) -> sg.Text | sg.Multiline:
     """
     Create a text area element with the given parameters.
 
@@ -74,15 +74,29 @@ def create_text_area(
     Returns:
         sg.Text: The text area element.
     """
-    return sg.Text(
-        text=text,
-        size=size,
-        key=key,
-        background_color=sg.theme_background_color(),
-        text_color=text_color,
-        expand_x=True,
-        expand_y=True,
-    )
+    if key in ["-QUICK_ANSWER-", "-FULL_ANSWER-"]:
+        return sg.Multiline(
+            default_text=text,
+            size=size,
+            key=key,
+            background_color=sg.theme_background_color(),
+            text_color=text_color,
+            disabled=False,  # True - Make it read-only
+            no_scrollbar=False,
+            border_width=0,
+            expand_x=True,
+            expand_y=True,
+        )
+    else:
+        return sg.Text(
+            text=text,
+            size=size,
+            key=key,
+            background_color=sg.theme_background_color(),
+            text_color=text_color,
+            expand_x=True,
+            expand_y=True,
+        )
 
 
 def name(name: str) -> sg.Text:
