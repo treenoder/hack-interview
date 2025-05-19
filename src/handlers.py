@@ -1,3 +1,4 @@
+import enum
 from typing import Any, Dict
 
 import FreeSimpleGUI as sg
@@ -5,12 +6,15 @@ from loguru import logger
 
 from src import audio, gpt_query
 from src.button import OFF_IMAGE, ON_IMAGE
+from src.models import AnalyzeType
 from src.screenshot_area import ScreenshotArea
 from utils.list_models import update_models
 from utils.cache import set_default_model, set_default_position
 
 # Create a global instance of the ScreenshotArea class
 screenshot_area = ScreenshotArea()
+
+_analyze_type = AnalyzeType.ANALYZE
 
 
 def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None:
@@ -22,6 +26,7 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
         event (str): The event.
         values (Dict[str, Any]): The values of the window.
     """
+    global _analyze_type
     # Check if the screenshot area window handled the event
     if screenshot_area.handle_events(event, values):
         return
@@ -32,8 +37,10 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
         if event in ("r", "R", "-RECORD_BUTTON-"):
             recording_event(window)
         elif event in ("a", "A", "-ANALYZE_BUTTON-"):
+            _analyze_type = AnalyzeType.ANALYZE
             transcribe_event(window)
         elif event == "-ANALYZE_SS_BUTTON-":
+            _analyze_type = AnalyzeType.ANALYZE_SS
             analyze_ss_event(window)
         elif event == "-SCREENSHOT_AREA_BUTTON-":
             screenshot_area_event(window)
@@ -95,7 +102,7 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
 
     # When the transcription is ready
     elif event == "-WHISPER-":
-        answer_events(window, values)
+        answer_events(window, values, _analyze_type)
 
     # When the quick answer is ready
     elif event == "-QUICK_ANSWER-":
@@ -175,7 +182,7 @@ def analyze_ss_event(window: sg.Window) -> None:
     transcribe_event(window)
 
 
-def answer_events(window: sg.Window, values: Dict[str, Any]) -> None:
+def answer_events(window: sg.Window, values: Dict[str, Any], analyze_type: AnalyzeType) -> None:
     """
     Handle the answer events. Generate quick and full answers and update the text areas.
 
@@ -205,6 +212,7 @@ def answer_events(window: sg.Window, values: Dict[str, Any]) -> None:
             temperature=0,
             model=model,
             position=position,
+            analyze_type=analyze_type,
         ),
         "-QUICK_ANSWER-",
     )
@@ -219,6 +227,7 @@ def answer_events(window: sg.Window, values: Dict[str, Any]) -> None:
             temperature=0.7,
             model=model,
             position=position,
+            analyze_type=analyze_type,
         ),
         "-FULL_ANSWER-",
     )

@@ -1,8 +1,11 @@
 from dotenv import load_dotenv
 from loguru import logger
 from openai import ChatCompletion, OpenAI
+from openai.types.audio import Transcription
 
 from src.config import DEFAULT_MODEL, DEFAULT_POSITION, OUTPUT_FILE_NAME
+from src.models import AnalyzeType
+from utils.image import encode_image
 
 SYS_PREFIX: str = "Ти відповідаєш на запитання викладача з "
 SYS_SUFFIX: str = """ .
@@ -31,9 +34,9 @@ def transcribe_audio(path_to_file: str = OUTPUT_FILE_NAME) -> str:
 
     with open(path_to_file, "rb") as audio_file:
         try:
-            transcript: str = client.audio.transcriptions.create(
+            transcript = str(client.audio.transcriptions.create(
                 model="whisper-1", file=audio_file, response_format="text"
-            )
+            ))
         except Exception as error:
             logger.error(f"Can't transcribe audio: {error}")
             raise error
@@ -50,6 +53,7 @@ def generate_answer(
     temperature: float = 0.7,
     model: str = DEFAULT_MODEL,
     position: str = DEFAULT_POSITION,
+    analyze_type: AnalyzeType = AnalyzeType.ANALYZE,
 ) -> str:
     """
     Generate an answer to the question using the OpenAI API.
@@ -60,6 +64,7 @@ def generate_answer(
         temperature (float, optional): The temperature to use. Defaults to 0.7.
         model (str, optional): The model to use. Defaults to DEFAULT_MODEL.
         position (str, optional): The position to use. Defaults to DEFAULT_POSITION.
+        analyze_type (AnalyzeType, optional): The type of analysis to perform. Defaults to AnalyzeType.ANALYZE.
 
     Returns:
         str: The generated answer.
@@ -73,12 +78,24 @@ def generate_answer(
 
     # Generate answer
     try:
+        content = [{
+            "type": "text",
+            "text": transcript,
+        }]
+        if analyze_type is AnalyzeType.ANALYZE_SS:
+            img = encode_image("screenshot.png")
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/png;base64,{img}"
+                }
+            })
         response: ChatCompletion = client.chat.completions.create(
             model=model,
             temperature=temperature,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": transcript},
+                {"role": "user", "content": content},
             ],
         )
     except Exception as error:
