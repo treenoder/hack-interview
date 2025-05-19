@@ -5,8 +5,12 @@ from loguru import logger
 
 from src import audio, gpt_query
 from src.button import OFF_IMAGE, ON_IMAGE
+from src.screenshot_area import ScreenshotArea
 from utils.list_models import update_models
 from utils.cache import set_default_model, set_default_position
+
+# Create a global instance of the ScreenshotArea class
+screenshot_area = ScreenshotArea()
 
 
 def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None:
@@ -18,6 +22,10 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
         event (str): The event.
         values (Dict[str, Any]): The values of the window.
     """
+    # Check if the screenshot area window handled the event
+    if screenshot_area.handle_events(event, values):
+        return
+
     # If the user is not focused on the position input, process the events
     focused_element: sg.Element = window.find_element_with_focus()
     if not focused_element or focused_element.Key != "-POSITION_INPUT-":
@@ -25,6 +33,8 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
             recording_event(window)
         elif event in ("a", "A", "-ANALYZE_BUTTON-"):
             transcribe_event(window)
+        elif event == "-SCREENSHOT_AREA_BUTTON-":
+            screenshot_area_event(window)
 
     # If the user is focused on the position input
     if event[:6] in ("Return", "Escape"):
@@ -126,6 +136,21 @@ def transcribe_event(window: sg.Window) -> None:
 
     # Transcribe audio
     window.perform_long_operation(gpt_query.transcribe_audio, "-WHISPER-")
+
+
+def screenshot_area_event(window: sg.Window) -> None:
+    """
+    Handle the screenshot area event. Toggle the screenshot area window and update the button.
+
+    Args:
+        window (sg.Window): The window element.
+    """
+    button: sg.Element = window["-SCREENSHOT_AREA_BUTTON-"]
+    button.metadata.state = not button.metadata.state
+    button.update(image_data=ON_IMAGE if button.metadata.state else OFF_IMAGE)
+
+    # Toggle the screenshot area window
+    screenshot_area.toggle()
 
 
 def answer_events(window: sg.Window, values: Dict[str, Any]) -> None:

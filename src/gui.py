@@ -220,11 +220,19 @@ def build_layout() -> (
         focus=False,
     )
 
+    # Create Screenshot Area toggle button
+    screenshot_area_button = create_button(
+        image_data=OFF_IMAGE,
+        tooltip="Toggle Screenshot Area",
+        key="-SCREENSHOT_AREA_BUTTON-",
+    )
+
     # Create frames
     top_frame = create_frame(
         layout=[
             [name("Model"), model, update_models_button],
             [name("Position"), position],
+            [name("Screenshot Area"), screenshot_area_button],
         ],
         key="-TOP_FRAME-",
     )
@@ -303,4 +311,5 @@ def initialize_window() -> sg.Window:
         return_keyboard_events=True,
         use_default_focus=False,
         resizable=True,
+        finalize=True,
     )
