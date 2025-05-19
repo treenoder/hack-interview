@@ -74,21 +74,7 @@ def create_text_area(
     Returns:
         sg.Text: The text area element.
     """
-    if key in ["-QUICK_ANSWER-", "-FULL_ANSWER-"]:
-        return sg.Multiline(
-            default_text=text,
-            size=size,
-            key=key,
-            background_color=sg.theme_background_color(),
-            text_color=text_color,
-            disabled=False,  # True - Make it read-only
-            no_scrollbar=False,
-            border_width=0,
-            expand_x=True,
-            expand_y=True,
-        )
-    else:
-        return sg.Text(
+    return sg.Text(
             text=text,
             size=size,
             key=key,
@@ -204,12 +190,6 @@ def build_layout() -> (
     transcribed_text: sg.Text = create_text_area(
         size=(APPLICATION_WIDTH, 3), key="-TRANSCRIBED_TEXT-", text_color="white"
     )
-    quick_answer: sg.Text = create_text_area(
-        size=(APPLICATION_WIDTH, 7), key="-QUICK_ANSWER-", text_color="white"
-    )
-    full_answer: sg.Text = create_text_area(
-        size=(APPLICATION_WIDTH, 20), key="-FULL_ANSWER-", text_color="white"
-    )
 
     instructions: sg.Text = create_text_area(
         size=(int(APPLICATION_WIDTH * 0.7), 2),
@@ -272,15 +252,6 @@ def build_layout() -> (
         key="-QUESTION_FRAME-",
         border=1,
     )
-    short_answer_frame = create_frame(
-        title="Short Answer",
-        layout=[[quick_answer]],
-        key="-SHORT_ANSWER_FRAME-",
-        border=1,
-    )
-    full_answer_frame = create_frame(
-        title="Full Answer", layout=[[full_answer]], key="-FULL_ANSWER_FRAME-", border=1
-    )
     close_button_frame = create_frame(
         title="",
         layout=[[close_button]],
@@ -299,7 +270,7 @@ def build_layout() -> (
     )
 
     col3 = create_column(
-        layout=[[question_frame], [short_answer_frame], [full_answer_frame]],
+        layout=[[question_frame]],
         key="-COL3-",
     )
 

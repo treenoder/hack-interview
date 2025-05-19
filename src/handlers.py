@@ -10,6 +10,39 @@ from src.screenshot_area import ScreenshotArea
 from utils.list_models import update_models
 from utils.cache import set_default_model, set_default_position
 
+# Path to the response file
+RESPONSE_FILE = "RESPONSE.md"
+
+def clear_response_file():
+    """
+    Clear the response file.
+    """
+    with open(RESPONSE_FILE, "w") as f:
+        f.write("")
+    logger.debug(f"Cleared {RESPONSE_FILE}")
+
+def write_response(response, append=False):
+    """
+    Write a response to the response file.
+
+    Args:
+        response (str): The response to write.
+        append (bool, optional): Whether to append to the file. Defaults to False.
+    """
+    mode = "a" if append else "w"
+    with open(RESPONSE_FILE, mode) as f:
+        f.write(response)
+    logger.debug(f"{'Appended to' if append else 'Wrote to'} {RESPONSE_FILE}")
+
+def write_responses(response: str):
+    """
+    Write both short and full responses to the response file.
+    Clears the file first, then writes the short response,
+    adds a horizontal divider, and appends the full response.
+    """
+    write_response("\n---\n", append=True)
+    write_response(response, append=True)
+
 # Create a global instance of the ScreenshotArea class
 screenshot_area = ScreenshotArea()
 
@@ -107,13 +140,19 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
     elif event == "-QUICK_ANSWER-":
         logger.debug("Quick answer generated.")
         print("Quick answer:", values["-QUICK_ANSWER-"])
-        window["-QUICK_ANSWER-"].update(values["-QUICK_ANSWER-"])
+
+        # If we already have a full answer, write both to the file
+        if "-QUICK_ANSWER-" in values and values["-QUICK_ANSWER-"]:
+            write_responses(values["-QUICK_ANSWER-"])
 
     # When the full answer is ready
     elif event == "-FULL_ANSWER-":
         logger.debug("Full answer generated.")
         print("Full answer:", values["-FULL_ANSWER-"])
-        window["-FULL_ANSWER-"].update(values["-FULL_ANSWER-"])
+
+        # If we already have a quick answer, write both to the file
+        if "-FULL_ANSWER-" in values and values["-FULL_ANSWER-"]:
+            write_responses(values["-FULL_ANSWER-"])
 
 
 def recording_event(window: sg.Window) -> None:
@@ -190,8 +229,6 @@ def answer_events(window: sg.Window, values: Dict[str, Any], analyze_type: Analy
         values (Dict[str, Any]): The values of the window.
     """
     transcribed_text: sg.Element = window["-TRANSCRIBED_TEXT-"]
-    quick_answer: sg.Element = window["-QUICK_ANSWER-"]
-    full_answer: sg.Element = window["-FULL_ANSWER-"]
 
     # Get audio transcript and update text area
     audio_transcript: str = values["-WHISPER-"]
@@ -201,9 +238,11 @@ def answer_events(window: sg.Window, values: Dict[str, Any], analyze_type: Analy
     model: str = values["-MODEL_COMBO-"]
     position: str = values["-POSITION_INPUT-"]
 
+    # Clear the response file before generating new answers
+    clear_response_file()
+
     # Generate quick answer
     logger.debug("Generating quick answer...")
-    quick_answer.update("Generating quick answer...")
     window.perform_long_operation(
         lambda: gpt_query.generate_answer(
             audio_transcript,
@@ -218,7 +257,6 @@ def answer_events(window: sg.Window, values: Dict[str, Any], analyze_type: Analy
 
     # Generate full answer
     logger.debug("Generating full answer...")
-    full_answer.update("Generating full answer...")
     window.perform_long_operation(
         lambda: gpt_query.generate_answer(
             audio_transcript,
