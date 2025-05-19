@@ -8,18 +8,21 @@ from openai.types.audio import Transcription
 from src.config import DEFAULT_MODEL, DEFAULT_POSITION, OUTPUT_FILE_NAME
 from src.models import AnalyzeType
 from utils.image import encode_image
+from utils.transcribe import transcribe_audio_from_file
 
 SYS_PREFIX: str = "Ти відповідаєш на запитання викладача з "
 SYS_SUFFIX: str = """ .
-Ти отримаєш аудіотранскрипцію запитання. Він може бути неповним, деякі слова можуть бути неправильно транскибовані. Потрібно зрозуміти питання і написати на нього відповідь.\n
+Ти отримаєш аудіотранскрипцію запитання. 
+Він може бути неповним, деякі слова можуть бути неправильно транскибовані. 
+Потрібно зрозуміти питання і написати на нього відповідь.
+Latex формули видавати між символами $.\n
 """
 
-SHORT_INSTRUCTION: str = "Відповідайте коротко, обмежуючи свою відповідь 50 словами. Latex формули видавати між символами $"
+SHORT_INSTRUCTION: str = "Відповідайте коротко, обмежуючи свою відповідь 50 словами."
 LONG_INSTRUCTION: str = """
 Перш ніж відповісти, глибоко вдихни і подумай крок за кроком. 
-Якщо у відповіді є формули, то дай короткі визначення всіх параметрів, змінні та самої формули.
+Якщо у відповіді є формули, то треба записати короткі визначення всіх параметрів, змінних та самої формули.
 Перевір що відповідь містить не більше ніж 150-200 слів. 
-Latex формули видавати між символами $.
 """
 
 load_dotenv()
@@ -69,15 +72,15 @@ def transcribe_audio(path_to_file: str = OUTPUT_FILE_NAME) -> str:
     else:
         last_transcription = Transcription(path_to_file)
 
-    with open(path_to_file, "rb") as audio_file:
-        try:
-            transcript = str(client.audio.transcriptions.create(
-                model="whisper-1", file=audio_file, response_format="text"
-            ))
-        except Exception as error:
-            logger.error(f"Can't transcribe audio: {error}")
-            raise error
-
+    # with open(path_to_file, "rb") as audio_file:
+    #     try:
+    #         transcript = str(client.audio.transcriptions.create(
+    #             model="whisper-1", file=audio_file, response_format="text"
+    #         ))
+    #     except Exception as error:
+    #         logger.error(f"Can't transcribe audio: {error}")
+    #         raise error
+    transcript = transcribe_audio_from_file(path_to_file)
     last_transcription.text = transcript
     logger.debug("Audio transcribed.")
     print("Transcription:", transcript)
