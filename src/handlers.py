@@ -1,4 +1,3 @@
-import enum
 from typing import Any, Dict
 
 import FreeSimpleGUI as sg
@@ -15,23 +14,6 @@ from utils.cache import set_default_model, set_default_position
 screenshot_area = ScreenshotArea()
 
 _analyze_type = AnalyzeType.ANALYZE
-
-
-def process_latex(text: str) -> str:
-    """
-    Process LaTeX expressions in the text.
-    This function identifies LaTeX expressions between \(\) or \[\] and formats them.
-
-    Args:
-        text (str): The text to process.
-
-    Returns:
-        str: The processed text with formatted LaTeX expressions.
-    """
-    # For now, we're just making the LaTeX expressions more readable
-    # In a more advanced implementation, you could use a library like MathJax
-    # to render the LaTeX expressions properly
-    return text
 
 
 def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None:
@@ -124,16 +106,14 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
     # When the quick answer is ready
     elif event == "-QUICK_ANSWER-":
         logger.debug("Quick answer generated.")
-        processed_text = process_latex(values["-QUICK_ANSWER-"])
-        print("Quick answer:", processed_text)
-        window["-QUICK_ANSWER-"].update(processed_text)
+        print("Quick answer:", values["-QUICK_ANSWER-"])
+        window["-QUICK_ANSWER-"].update(values["-QUICK_ANSWER-"])
 
     # When the full answer is ready
     elif event == "-FULL_ANSWER-":
         logger.debug("Full answer generated.")
-        processed_text = process_latex(values["-FULL_ANSWER-"])
-        print("Full answer:", processed_text)
-        window["-FULL_ANSWER-"].update(processed_text)
+        print("Full answer:", values["-FULL_ANSWER-"])
+        window["-FULL_ANSWER-"].update(values["-FULL_ANSWER-"])
 
 
 def recording_event(window: sg.Window) -> None:
