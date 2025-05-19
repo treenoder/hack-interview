@@ -33,6 +33,8 @@ def handle_events(window: sg.Window, event: str, values: Dict[str, Any]) -> None
             recording_event(window)
         elif event in ("a", "A", "-ANALYZE_BUTTON-"):
             transcribe_event(window)
+        elif event == "-ANALYZE_SS_BUTTON-":
+            analyze_ss_event(window)
         elif event == "-SCREENSHOT_AREA_BUTTON-":
             screenshot_area_event(window)
 
@@ -151,6 +153,26 @@ def screenshot_area_event(window: sg.Window) -> None:
 
     # Toggle the screenshot area window
     screenshot_area.toggle()
+
+
+def analyze_ss_event(window: sg.Window) -> None:
+    """
+    Handle the analyze SS event. Take a screenshot of the screenshot area if enabled,
+    save it as screenshot.png, then transcribe audio and update the text area.
+
+    Args:
+        window (sg.Window): The window element.
+    """
+    # Check if screenshot area is enabled
+    button: sg.Element = window["-SCREENSHOT_AREA_BUTTON-"]
+    if button.metadata.state and screenshot_area.window:
+        # Take a screenshot of the screenshot area and save it as screenshot.png
+        logger.debug("Taking screenshot of the screenshot area...")
+        screenshot_area.grab_area_screenshot("screenshot.png")
+        logger.debug("Screenshot saved as screenshot.png")
+
+    # Continue with regular analyze functionality
+    transcribe_event(window)
 
 
 def answer_events(window: sg.Window, values: Dict[str, Any]) -> None:

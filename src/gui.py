@@ -172,6 +172,13 @@ def build_layout() -> (
         key="-ANALYZE_BUTTON-",
         subsample=2,
     )
+    analyze_ss_button: sg.Button = create_button(
+        image_data=GREY_BUTTON,
+        text="Analyze SS",
+        tooltip="Take a screenshot, save it as screenshot.png, then Transcribe and Analyze",
+        key="-ANALYZE_SS_BUTTON-",
+        subsample=2,
+    )
     close_button: sg.Button = create_button(
         image_data=GREY_BUTTON,
         text="Close",
@@ -242,7 +249,7 @@ def build_layout() -> (
         key="-INSTRUCTIONS_FRAME-",
     )
     buttons_frame = create_frame(
-        layout=[[record_button], [analyze_button]],
+        layout=[[record_button], [analyze_button], [analyze_ss_button]],
         key="-BUTTONS_FRAME-",
     )
     question_frame = create_frame(

@@ -1,4 +1,5 @@
 import FreeSimpleGUI as sg
+from PIL import ImageGrab
 
 
 class ScreenshotArea:
@@ -89,3 +90,20 @@ class ScreenshotArea:
             return True
 
         return False
+
+    def grab_area_screenshot(self, filename):
+        """
+        Делает скриншот текущей области окна и сохраняет его в файл.
+        """
+        if not self.window:
+            return
+        # Получаем положение и размеры окна screenshot_area
+        x = self.window.TKroot.winfo_rootx()
+        y = self.window.TKroot.winfo_rooty()
+        w = self.window.TKroot.winfo_width()
+        h = self.window.TKroot.winfo_height()
+
+        bbox = (x, y, x + w, y + h)
+        screenshot = ImageGrab.grab(bbox)
+        screenshot.save(filename)
+
